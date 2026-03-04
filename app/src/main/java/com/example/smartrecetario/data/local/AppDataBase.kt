@@ -15,6 +15,7 @@ import com.example.smartrecetario.data.local.entity.Receta
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun recetaDao(): RecetaDao
+    abstract fun categoriaDao(): CategoriaDao
 
     companion object {
 

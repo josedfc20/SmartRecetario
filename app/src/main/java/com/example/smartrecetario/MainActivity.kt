@@ -3,27 +3,52 @@ package com.example.smartrecetario
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.smartrecetario.data.local.AppDatabase
+import com.example.smartrecetario.data.local.entity.Receta
 import com.example.smartrecetario.ui.theme.SmartRecetarioTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        val db = AppDatabase.getDatabase(this)
+        val recetaDao = db.recetaDao()
+
         setContent {
+
             SmartRecetarioTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+
+                var recetas by remember { mutableStateOf(listOf<Receta>()) }
+
+                val scope = rememberCoroutineScope()
+
+                LaunchedEffect(Unit) {
+
+                    scope.launch(Dispatchers.IO) {
+
+                        val resultado = recetaDao.obtenerTodas()
+
+                        recetas = resultado
+                    }
+
+                }
+
+                Surface(
+                    color = MaterialTheme.colorScheme.background
+                ) {
+
+                    ListaRecetas(recetas)
+
                 }
             }
         }
@@ -31,17 +56,16 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun ListaRecetas(recetas: List<Receta>) {
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SmartRecetarioTheme {
-        Greeting("Android")
+    LazyColumn {
+
+        items(recetas) { receta ->
+
+            Text(text = receta.titulo)
+
+        }
+
     }
+
 }
