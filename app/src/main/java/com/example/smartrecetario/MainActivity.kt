@@ -3,15 +3,15 @@ package com.example.smartrecetario
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.smartrecetario.data.local.AppDatabase
 import com.example.smartrecetario.data.local.entity.Receta
+import com.example.smartrecetario.ui.screens.DetalleRecetaScreen
+import com.example.smartrecetario.ui.screens.ListaRecetasScreen
+import com.example.smartrecetario.ui.screens.NuevaRecetaScreen
 import com.example.smartrecetario.ui.theme.SmartRecetarioTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,39 +30,74 @@ class MainActivity : ComponentActivity() {
 
                 var recetas by remember { mutableStateOf(listOf<Receta>()) }
 
+                var recetaSeleccionada by remember { mutableStateOf<Receta?>(null) }
+
+                var pantallaActual by remember { mutableStateOf("lista") }
+
                 val scope = rememberCoroutineScope()
 
                 LaunchedEffect(Unit) {
-
                     scope.launch(Dispatchers.IO) {
+                        recetas = recetaDao.obtenerTodas()
+                    }
+                }
 
-                        val resultado = recetaDao.obtenerTodas()
+                Surface(
+                    modifier = Modifier,
+                    color = MaterialTheme.colorScheme.background
+                ) {
 
-                        recetas = resultado
+                    when (pantallaActual) {
+
+                        "lista" -> {
+
+                            ListaRecetasScreen(
+                                recetas = recetas,
+                                onRecetaClick = {
+                                    recetaSeleccionada = it
+                                    pantallaActual = "detalle"
+                                },
+                                onNuevaReceta = {
+                                    pantallaActual = "nueva"
+                                }
+                            )
+
+                        }
+
+                        "detalle" -> {
+
+                            DetalleRecetaScreen(
+                                receta = recetaSeleccionada!!,
+                                onVolver = {
+                                    pantallaActual = "lista"
+                                }
+                            )
+
+                        }
+
+                        "nueva" -> {
+
+                            NuevaRecetaScreen { nuevaReceta ->
+
+                                scope.launch(Dispatchers.IO) {
+
+                                    recetaDao.insertar(nuevaReceta)
+
+                                    recetas = recetaDao.obtenerTodas()
+
+                                    pantallaActual = "lista"
+
+                                }
+
+                            }
+
+                        }
+
                     }
 
                 }
 
-                Surface(
-                    color = MaterialTheme.colorScheme.background
-                ) {
-
-                    ListaRecetas(recetas)
-
-                }
             }
-        }
-    }
-}
-
-@Composable
-fun ListaRecetas(recetas: List<Receta>) {
-
-    LazyColumn {
-
-        items(recetas) { receta ->
-
-            Text(text = receta.titulo)
 
         }
 
