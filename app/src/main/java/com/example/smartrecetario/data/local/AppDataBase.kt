@@ -17,6 +17,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recetaDao(): RecetaDao
     abstract fun categoriaDao(): CategoriaDao
 
+    abstract fun ingredienteDao(): IngredienteDao
     companion object {
 
         @Volatile

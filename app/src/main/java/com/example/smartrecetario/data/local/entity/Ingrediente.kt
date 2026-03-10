@@ -15,13 +15,17 @@ import androidx.room.ForeignKey
         )
     ]
 )
+
 data class Ingrediente(
 
     @PrimaryKey(autoGenerate = true)
     val idIngrediente: Int = 0,
 
     val nombre: String,
+
     val precio: Double,
+
+    val cantidad: Double,
 
     val idReceta: Int
 )

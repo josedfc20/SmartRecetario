@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import com.example.smartrecetario.data.local.AppDatabase
 import com.example.smartrecetario.data.local.entity.Receta
 import com.example.smartrecetario.ui.screens.DetalleRecetaScreen
+import com.example.smartrecetario.ui.screens.FiltroPresupuestoScreen
 import com.example.smartrecetario.ui.screens.ListaRecetasScreen
 import com.example.smartrecetario.ui.screens.NuevaRecetaScreen
 import com.example.smartrecetario.ui.theme.SmartRecetarioTheme
@@ -59,6 +60,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNuevaReceta = {
                                     pantallaActual = "nueva"
+                                },
+                                onFiltrar = {
+                                    pantallaActual = "filtro"
                                 }
                             )
 
@@ -84,6 +88,24 @@ class MainActivity : ComponentActivity() {
                                     recetaDao.insertar(nuevaReceta)
 
                                     recetas = recetaDao.obtenerTodas()
+
+                                    pantallaActual = "lista"
+
+                                }
+
+                            }
+
+                        }
+
+                        "filtro" -> {
+
+                            FiltroPresupuestoScreen { presupuesto ->
+
+                                scope.launch(Dispatchers.IO) {
+
+                                    val resultado = recetaDao.obtenerRecetasPorPresupuesto(presupuesto)
+
+                                    recetas = resultado
 
                                     pantallaActual = "lista"
 

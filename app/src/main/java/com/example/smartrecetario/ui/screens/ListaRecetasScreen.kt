@@ -16,7 +16,8 @@ import com.example.smartrecetario.data.local.entity.Receta
 fun ListaRecetasScreen(
     recetas: List<Receta>,
     onRecetaClick: (Receta) -> Unit,
-    onNuevaReceta: () -> Unit
+    onNuevaReceta: () -> Unit,
+    onFiltrar: () -> Unit
 ) {
 
     Column {
@@ -26,6 +27,13 @@ fun ListaRecetasScreen(
             modifier = Modifier.padding(16.dp)
         ) {
             Text("Nueva receta")
+        }
+
+        Button(
+            onClick = { onFiltrar() },
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text("Filtrar por presupuesto")
         }
 
         LazyColumn {

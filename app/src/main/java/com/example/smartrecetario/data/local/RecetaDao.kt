@@ -12,6 +12,9 @@ interface RecetaDao {
     @Query("SELECT * FROM recetas")
     suspend fun obtenerTodas(): List<Receta>
 
+    @Query("SELECT * FROM recetas WHERE costeTotal <= :presupuesto")
+    suspend fun obtenerRecetasPorPresupuesto(presupuesto: Double): List<Receta>
+
     @Delete
     suspend fun eliminar(receta: Receta)
 
