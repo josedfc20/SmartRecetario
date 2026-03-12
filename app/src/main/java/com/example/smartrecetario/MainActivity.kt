@@ -9,10 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.smartrecetario.data.local.AppDatabase
 import com.example.smartrecetario.data.local.entity.Receta
-import com.example.smartrecetario.ui.screens.DetalleRecetaScreen
-import com.example.smartrecetario.ui.screens.FiltroPresupuestoScreen
-import com.example.smartrecetario.ui.screens.ListaRecetasScreen
-import com.example.smartrecetario.ui.screens.NuevaRecetaScreen
+import com.example.smartrecetario.ui.screens.*
 import com.example.smartrecetario.ui.theme.SmartRecetarioTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,6 +20,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val db = AppDatabase.getDatabase(this)
+
         val recetaDao = db.recetaDao()
 
         setContent {
@@ -38,9 +36,13 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 LaunchedEffect(Unit) {
+
                     scope.launch(Dispatchers.IO) {
+
                         recetas = recetaDao.obtenerTodas()
+
                     }
+
                 }
 
                 Surface(
@@ -54,16 +56,40 @@ class MainActivity : ComponentActivity() {
 
                             ListaRecetasScreen(
                                 recetas = recetas,
+
                                 onRecetaClick = {
                                     recetaSeleccionada = it
                                     pantallaActual = "detalle"
                                 },
+
                                 onNuevaReceta = {
                                     pantallaActual = "nueva"
                                 },
+
                                 onFiltrar = {
                                     pantallaActual = "filtro"
                                 }
+                            )
+                        }
+
+                        "nueva" -> {
+
+                            NuevaRecetaScreen(
+
+                                onGuardar = { receta ->
+
+                                    scope.launch(Dispatchers.IO) {
+
+                                        recetaDao.insertarReceta(receta)
+
+                                        recetas = recetaDao.obtenerTodas()
+
+                                        pantallaActual = "lista"
+
+                                    }
+
+                                }
+
                             )
 
                         }
@@ -72,47 +98,33 @@ class MainActivity : ComponentActivity() {
 
                             DetalleRecetaScreen(
                                 receta = recetaSeleccionada!!,
+                                db = db,
+                                onVolver = { pantallaActual = "lista" },
+                                onAgregarIngrediente = { pantallaActual = "agregarIngrediente" }
+                            )
+                        }
+
+                        "agregarIngrediente" -> {
+
+                            AgregarIngredienteScreen(
+                                idReceta = recetaSeleccionada!!.idReceta,
+
+                                onGuardar = { ingrediente ->
+
+                                    scope.launch(Dispatchers.IO) {
+
+                                        db.ingredienteDao().insertarIngrediente(ingrediente)
+
+                                        pantallaActual = "detalle"
+
+                                    }
+
+                                },
+
                                 onVolver = {
-                                    pantallaActual = "lista"
+                                    pantallaActual = "detalle"
                                 }
                             )
-
-                        }
-
-                        "nueva" -> {
-
-                            NuevaRecetaScreen { nuevaReceta ->
-
-                                scope.launch(Dispatchers.IO) {
-
-                                    recetaDao.insertar(nuevaReceta)
-
-                                    recetas = recetaDao.obtenerTodas()
-
-                                    pantallaActual = "lista"
-
-                                }
-
-                            }
-
-                        }
-
-                        "filtro" -> {
-
-                            FiltroPresupuestoScreen { presupuesto ->
-
-                                scope.launch(Dispatchers.IO) {
-
-                                    val resultado = recetaDao.obtenerRecetasPorPresupuesto(presupuesto)
-
-                                    recetas = resultado
-
-                                    pantallaActual = "lista"
-
-                                }
-
-                            }
-
                         }
 
                     }

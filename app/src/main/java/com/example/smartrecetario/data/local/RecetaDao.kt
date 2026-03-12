@@ -7,13 +7,16 @@ import com.example.smartrecetario.data.local.entity.Receta
 interface RecetaDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertar(receta: Receta)
+    suspend fun insertarReceta(receta: Receta)
 
     @Query("SELECT * FROM recetas")
     suspend fun obtenerTodas(): List<Receta>
 
     @Query("SELECT * FROM recetas WHERE costeTotal <= :presupuesto")
     suspend fun obtenerRecetasPorPresupuesto(presupuesto: Double): List<Receta>
+
+    @Query("UPDATE recetas SET costeTotal = :coste WHERE idReceta = :id")
+    suspend fun actualizarCoste(id: Int, coste: Double)
 
     @Delete
     suspend fun eliminar(receta: Receta)

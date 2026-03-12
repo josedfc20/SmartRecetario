@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.smartrecetario.data.local.dao.IngredienteDao
 import com.example.smartrecetario.data.local.entity.Categoria
 import com.example.smartrecetario.data.local.entity.Ingrediente
 import com.example.smartrecetario.data.local.entity.Receta
@@ -16,7 +17,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun recetaDao(): RecetaDao
     abstract fun categoriaDao(): CategoriaDao
-
     abstract fun ingredienteDao(): IngredienteDao
     companion object {
 
@@ -29,7 +29,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "smartrecetario_db"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration(false)
+                    .build()
                 INSTANCE = instance
                 instance
             }
