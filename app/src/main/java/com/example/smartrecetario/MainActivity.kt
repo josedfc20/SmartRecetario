@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.smartrecetario.data.local.AppDatabase
 import com.example.smartrecetario.data.local.entity.Receta
+import com.example.smartrecetario.data.local.entity.Ingrediente
 import com.example.smartrecetario.ui.screens.*
 import com.example.smartrecetario.ui.theme.SmartRecetarioTheme
 import kotlinx.coroutines.Dispatchers
@@ -27,21 +28,21 @@ class MainActivity : ComponentActivity() {
 
             SmartRecetarioTheme {
 
-                // 🔹 Flow → lista base de recetas (reactiva)
+                // 🔹 Flow de recetas (reactivo)
                 val recetas by recetaDao
                     .obtenerTodas()
                     .collectAsState(initial = emptyList())
 
-                // 🔹 Estado para filtro
+                // 🔹 Filtro
                 var recetasFiltradas by remember { mutableStateOf<List<Receta>?>(null) }
-
-                // 🔹 Lista que realmente se muestra
                 val listaAMostrar = recetasFiltradas ?: recetas
 
                 var recetaSeleccionada by remember { mutableStateOf<Receta?>(null) }
                 var pantallaActual by remember { mutableStateOf("lista") }
 
                 val scope = rememberCoroutineScope()
+
+                var ingredienteSeleccionado by remember { mutableStateOf<Ingrediente?>(null) }
 
                 Surface(
                     modifier = Modifier,
@@ -64,13 +65,27 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onNuevaReceta = {
-                                    recetasFiltradas = null // 🔹 reset filtro
+                                    recetasFiltradas = null
                                     pantallaActual = "nueva"
                                 },
 
                                 onFiltrar = {
                                     pantallaActual = "filtro"
+                                },
+
+                                onEliminarReceta = { receta ->
+
+                                    scope.launch(Dispatchers.IO) {
+                                        recetaDao.eliminar(receta)
+                                    }
+
+                                },
+
+                                onEditarReceta = { receta ->
+                                    recetaSeleccionada = receta
+                                    pantallaActual = "editar"
                                 }
+
                             )
                         }
 
@@ -99,6 +114,32 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // =========================
+                        // EDITAR RECETA
+                        // =========================
+                        "editar" -> {
+
+                            NuevaRecetaScreen(
+
+                                recetaExistente = recetaSeleccionada,
+
+                                onGuardar = { receta ->
+
+                                    scope.launch(Dispatchers.IO) {
+                                        recetaDao.actualizar(receta)
+                                    }
+
+                                    pantallaActual = "lista"
+                                },
+
+                                onVolver = {
+                                    pantallaActual = "lista"
+                                }
+
+                            )
+
+                        }
+
+                        // =========================
                         // DETALLE
                         // =========================
                         "detalle" -> {
@@ -106,12 +147,14 @@ class MainActivity : ComponentActivity() {
                             DetalleRecetaScreen(
                                 receta = recetaSeleccionada!!,
                                 db = db,
-                                onVolver = {
-                                    pantallaActual = "lista"
-                                },
-                                onAgregarIngrediente = {
-                                    pantallaActual = "agregarIngrediente"
+                                onVolver = { pantallaActual = "lista" },
+                                onAgregarIngrediente = { pantallaActual = "agregarIngrediente" },
+
+                                onEditarIngrediente = { ingrediente ->
+                                    ingredienteSeleccionado = ingrediente
+                                    pantallaActual = "editarIngrediente"
                                 }
+
                             )
                         }
 
@@ -139,6 +182,33 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // =========================
+                        // EDITAR INGREDIENTE
+                        // =========================
+
+                        "editarIngrediente" -> {
+
+                            AgregarIngredienteScreen(
+                                idReceta = recetaSeleccionada!!.idReceta,
+                                ingredienteExistente = ingredienteSeleccionado,
+
+                                onGuardar = { ingrediente ->
+
+                                    scope.launch(Dispatchers.IO) {
+                                        db.ingredienteDao().insertarIngrediente(ingrediente)
+                                    }
+
+                                    pantallaActual = "detalle"
+                                },
+
+                                onVolver = {
+                                    pantallaActual = "detalle"
+                                }
+
+                            )
+
+                        }
+
+                        // =========================
                         // FILTRO
                         // =========================
                         "filtro" -> {
@@ -156,6 +226,10 @@ class MainActivity : ComponentActivity() {
                                         pantallaActual = "lista"
                                     }
 
+                                },
+
+                                onVolver = {
+                                    pantallaActual = "lista"
                                 }
 
                             )

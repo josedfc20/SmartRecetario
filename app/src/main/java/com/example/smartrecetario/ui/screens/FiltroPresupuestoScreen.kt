@@ -11,7 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun FiltroPresupuestoScreen(
-    onBuscar: (Double) -> Unit
+    onBuscar: (Double) -> Unit,
+    onVolver: () -> Unit // 🔹 NUEVO
 ) {
 
     var presupuesto by remember { mutableStateOf("") }
@@ -42,6 +43,16 @@ fun FiltroPresupuestoScreen(
         ) {
 
             Text("Buscar recetas")
+
+        }
+
+        // 🔹 BOTÓN NUEVO
+        Button(
+            onClick = { onVolver() },
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+
+            Text("Volver")
 
         }
 

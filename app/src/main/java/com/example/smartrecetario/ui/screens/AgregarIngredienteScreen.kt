@@ -13,18 +13,23 @@ import com.example.smartrecetario.data.local.entity.Ingrediente
 @Composable
 fun AgregarIngredienteScreen(
     idReceta: Int,
+    ingredienteExistente: Ingrediente? = null, // 🔹 NUEVO
     onGuardar: (Ingrediente) -> Unit,
     onVolver: () -> Unit
 ) {
-    var nombre by remember { mutableStateOf("") }
-    var precio by remember { mutableStateOf("") }
-    var cantidad by remember { mutableStateOf("") }
+
+    var nombre by remember { mutableStateOf(ingredienteExistente?.nombre ?: "") }
+    var precio by remember { mutableStateOf(ingredienteExistente?.precio?.toString() ?: "") }
+    var cantidad by remember { mutableStateOf(ingredienteExistente?.cantidad?.toString() ?: "") }
 
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
 
-        Text("Añadir ingrediente")
+        Text(
+            if (ingredienteExistente == null) "Añadir ingrediente"
+            else "Editar ingrediente"
+        )
 
         OutlinedTextField(
             value = nombre,
@@ -48,9 +53,10 @@ fun AgregarIngredienteScreen(
             onClick = {
 
                 val ingrediente = Ingrediente(
+                    idIngrediente = ingredienteExistente?.idIngrediente ?: 0, // 🔴 CLAVE
                     nombre = nombre,
-                    precio = precio.toDouble(),
-                    cantidad = cantidad.toDouble(),
+                    precio = precio.toDoubleOrNull() ?: 0.0,
+                    cantidad = cantidad.toDoubleOrNull() ?: 0.0,
                     idReceta = idReceta
                 )
 
@@ -60,7 +66,10 @@ fun AgregarIngredienteScreen(
             modifier = Modifier.padding(top = 16.dp)
         ) {
 
-            Text("Guardar ingrediente")
+            Text(
+                if (ingredienteExistente == null) "Guardar ingrediente"
+                else "Actualizar ingrediente"
+            )
 
         }
 
@@ -68,9 +77,7 @@ fun AgregarIngredienteScreen(
             onClick = { onVolver() },
             modifier = Modifier.padding(top = 8.dp)
         ) {
-
             Text("Volver")
-
         }
 
     }

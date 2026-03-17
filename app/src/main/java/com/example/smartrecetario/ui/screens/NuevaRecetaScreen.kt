@@ -2,116 +2,81 @@ package com.example.smartrecetario.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.smartrecetario.data.local.entity.Receta
 
 @Composable
 fun NuevaRecetaScreen(
+    recetaExistente: Receta? = null, // 🔹 NUEVO
     onGuardar: (Receta) -> Unit,
     onVolver: () -> Unit
-){
+) {
 
-    var titulo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var tiempo by remember { mutableStateOf("") }
-    var precio by remember { mutableStateOf("") }
-
-    var errorMensaje by remember { mutableStateOf("") }
+    // 🔹 Si hay receta → precargar datos
+    var titulo by remember { mutableStateOf(recetaExistente?.titulo ?: "") }
+    var descripcion by remember { mutableStateOf(recetaExistente?.descripcion ?: "") }
+    var tiempo by remember { mutableStateOf(recetaExistente?.tiempoPreparacion?.toString() ?: "") }
+    var precio by remember { mutableStateOf(recetaExistente?.costeTotal?.toString() ?: "") }
 
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
 
-        Text(text = "Nueva receta")
+        Text(
+            text = if (recetaExistente == null) "Nueva receta" else "Editar receta"
+        )
 
         OutlinedTextField(
             value = titulo,
             onValueChange = { titulo = it },
-            label = { Text("Título") },
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Text
-            )
+            label = { Text("Título") }
         )
 
         OutlinedTextField(
             value = descripcion,
             onValueChange = { descripcion = it },
-            label = { Text("Descripción") },
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Text
-            )
+            label = { Text("Descripción") }
         )
 
         OutlinedTextField(
             value = tiempo,
             onValueChange = { tiempo = it },
-            label = { Text("Tiempo preparación (min)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            label = { Text("Tiempo preparación (min)") }
         )
 
         OutlinedTextField(
             value = precio,
             onValueChange = { precio = it },
-            label = { Text("Precio estimado (€)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            label = { Text("Precio estimado (€)") }
         )
-
-        if (errorMensaje.isNotEmpty()) {
-            Text(
-                text = errorMensaje,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
 
         Button(
             onClick = {
 
-                val tiempoInt = tiempo.toIntOrNull()
-                val precioDouble = precio.toDoubleOrNull()
+                val receta = Receta(
+                    idReceta = recetaExistente?.idReceta ?: 0, // 🔹 CLAVE
+                    titulo = titulo,
+                    descripcion = descripcion,
+                    tiempoPreparacion = tiempo.toIntOrNull() ?: 0,
+                    costeTotal = precio.toDoubleOrNull() ?: 0.0,
+                    idCategoria = 1
+                )
 
-                if (titulo.isBlank() || descripcion.isBlank()) {
-
-                    errorMensaje = "Completa todos los campos"
-
-                } else if (tiempoInt == null) {
-
-                    errorMensaje = "El tiempo debe ser un número"
-
-                } else if (precioDouble == null) {
-
-                    errorMensaje = "El precio debe ser un número"
-
-                } else {
-
-                    val receta = Receta(
-                        titulo = titulo,
-                        descripcion = descripcion,
-                        tiempoPreparacion = tiempoInt,
-                        costeTotal = precioDouble,
-                        idCategoria = 1
-                    )
-
-                    onGuardar(receta)
-
-                    errorMensaje = ""
-                }
+                onGuardar(receta)
 
             },
             modifier = Modifier.padding(top = 16.dp)
         ) {
 
-            Text("Guardar receta")
+            Text(
+                if (recetaExistente == null) "Guardar receta"
+                else "Actualizar receta"
+            )
 
         }
 
