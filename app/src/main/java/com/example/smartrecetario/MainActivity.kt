@@ -13,6 +13,7 @@ import com.example.smartrecetario.ui.screens.*
 import com.example.smartrecetario.ui.theme.SmartRecetarioTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.collectAsState
 
 class MainActivity : ComponentActivity() {
 
@@ -20,30 +21,27 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val db = AppDatabase.getDatabase(this)
-
         val recetaDao = db.recetaDao()
 
         setContent {
 
             SmartRecetarioTheme {
 
-                var recetas by remember { mutableStateOf(listOf<Receta>()) }
+                // 🔹 Flow → lista base de recetas (reactiva)
+                val recetas by recetaDao
+                    .obtenerTodas()
+                    .collectAsState(initial = emptyList())
+
+                // 🔹 Estado para filtro
+                var recetasFiltradas by remember { mutableStateOf<List<Receta>?>(null) }
+
+                // 🔹 Lista que realmente se muestra
+                val listaAMostrar = recetasFiltradas ?: recetas
 
                 var recetaSeleccionada by remember { mutableStateOf<Receta?>(null) }
-
                 var pantallaActual by remember { mutableStateOf("lista") }
 
                 val scope = rememberCoroutineScope()
-
-                LaunchedEffect(Unit) {
-
-                    scope.launch(Dispatchers.IO) {
-
-                        recetas = recetaDao.obtenerTodas()
-
-                    }
-
-                }
 
                 Surface(
                     modifier = Modifier,
@@ -52,10 +50,13 @@ class MainActivity : ComponentActivity() {
 
                     when (pantallaActual) {
 
+                        // =========================
+                        // LISTA
+                        // =========================
                         "lista" -> {
 
                             ListaRecetasScreen(
-                                recetas = recetas,
+                                recetas = listaAMostrar,
 
                                 onRecetaClick = {
                                     recetaSeleccionada = it
@@ -63,6 +64,7 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onNuevaReceta = {
+                                    recetasFiltradas = null // 🔹 reset filtro
                                     pantallaActual = "nueva"
                                 },
 
@@ -72,6 +74,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // =========================
+                        // NUEVA RECETA
+                        // =========================
                         "nueva" -> {
 
                             NuevaRecetaScreen(
@@ -79,31 +84,40 @@ class MainActivity : ComponentActivity() {
                                 onGuardar = { receta ->
 
                                     scope.launch(Dispatchers.IO) {
-
                                         recetaDao.insertarReceta(receta)
-
-                                        recetas = recetaDao.obtenerTodas()
-
-                                        pantallaActual = "lista"
-
                                     }
 
+                                    pantallaActual = "lista"
+                                },
+
+                                onVolver = {
+                                    pantallaActual = "lista"
                                 }
 
                             )
 
                         }
 
+                        // =========================
+                        // DETALLE
+                        // =========================
                         "detalle" -> {
 
                             DetalleRecetaScreen(
                                 receta = recetaSeleccionada!!,
                                 db = db,
-                                onVolver = { pantallaActual = "lista" },
-                                onAgregarIngrediente = { pantallaActual = "agregarIngrediente" }
+                                onVolver = {
+                                    pantallaActual = "lista"
+                                },
+                                onAgregarIngrediente = {
+                                    pantallaActual = "agregarIngrediente"
+                                }
                             )
                         }
 
+                        // =========================
+                        // AGREGAR INGREDIENTE
+                        // =========================
                         "agregarIngrediente" -> {
 
                             AgregarIngredienteScreen(
@@ -112,19 +126,40 @@ class MainActivity : ComponentActivity() {
                                 onGuardar = { ingrediente ->
 
                                     scope.launch(Dispatchers.IO) {
-
                                         db.ingredienteDao().insertarIngrediente(ingrediente)
-
-                                        pantallaActual = "detalle"
-
                                     }
 
+                                    pantallaActual = "detalle"
                                 },
 
                                 onVolver = {
                                     pantallaActual = "detalle"
                                 }
                             )
+                        }
+
+                        // =========================
+                        // FILTRO
+                        // =========================
+                        "filtro" -> {
+
+                            FiltroPresupuestoScreen(
+
+                                onBuscar = { presupuesto ->
+
+                                    scope.launch(Dispatchers.IO) {
+
+                                        val filtradas =
+                                            recetaDao.obtenerRecetasPorPresupuesto(presupuesto)
+
+                                        recetasFiltradas = filtradas
+                                        pantallaActual = "lista"
+                                    }
+
+                                }
+
+                            )
+
                         }
 
                     }

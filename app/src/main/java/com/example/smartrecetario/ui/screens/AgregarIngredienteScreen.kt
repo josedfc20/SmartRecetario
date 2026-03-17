@@ -16,7 +16,6 @@ fun AgregarIngredienteScreen(
     onGuardar: (Ingrediente) -> Unit,
     onVolver: () -> Unit
 ) {
-
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }

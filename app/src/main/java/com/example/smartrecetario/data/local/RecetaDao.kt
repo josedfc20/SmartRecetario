@@ -2,6 +2,7 @@ package com.example.smartrecetario.data.local
 
 import androidx.room.*
 import com.example.smartrecetario.data.local.entity.Receta
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RecetaDao {
@@ -10,7 +11,7 @@ interface RecetaDao {
     suspend fun insertarReceta(receta: Receta)
 
     @Query("SELECT * FROM recetas")
-    suspend fun obtenerTodas(): List<Receta>
+    fun obtenerTodas(): Flow<List<Receta>>
 
     @Query("SELECT * FROM recetas WHERE costeTotal <= :presupuesto")
     suspend fun obtenerRecetasPorPresupuesto(presupuesto: Double): List<Receta>

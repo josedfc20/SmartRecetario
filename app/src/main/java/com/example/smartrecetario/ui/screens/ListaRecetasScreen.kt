@@ -54,7 +54,9 @@ fun ListaRecetasScreen(
 
                     Text(text = "Tiempo: ${receta.tiempoPreparacion} min")
 
-                    Text(text = "Precio: ${receta.costeTotal} €")
+                    Text(
+                        text = "Precio: ${"%.2f".format(receta.costeTotal)} €"
+                    )
 
                 }
 
