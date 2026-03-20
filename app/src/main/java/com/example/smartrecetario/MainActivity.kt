@@ -182,7 +182,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // =========================
-                        // EDITAR INGREDIENTE
+                        // EDITAR INGREDIENTES
                         // =========================
 
                         "editarIngrediente" -> {
